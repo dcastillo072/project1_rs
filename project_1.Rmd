@@ -1,0 +1,47 @@
+---
+title: "Project_1_Reproducible Researh"
+author: "Dodanim"
+date: '2022-06-19'
+output: html_document
+---
+
+## First step: load data
+Loading and preprocessing the data
+Show any code that is needed to
+
+* Load the data
+
+* Process/transform the data (if necessary) into a format suitable for your analysis
+
+```{r reading, cache=TRUE, echo=TRUE}
+datos <- read.csv("activity.csv")
+head(datos)
+str(datos)
+summary(datos)
+```
+
+### Procesing data and cleaning
+
+```{r date_conversion, message=FALSE, echo=TRUE}
+datos$day <- weekdays(as.Date(datos$date))
+datos$date <- as.POSIXct(datos$date, format = "%Y-%m-%d")
+
+datos_limpios <- datos[!is.na(datos$steps),]
+head(datos_limpios)
+```
+
+## What is the average daily activity pattern?
+#### 1. Calculate the total number of steps taken per day (ignore the missing values)
+```{r daily_total,message=FALSE, echo=TRUE}
+sumTable <- aggregate(datos$steps ~ datos$date, FUN=sum, )
+colnames(sumTable)<- c("Date", "Steps")
+
+#making histogram
+hist(sumTable$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day")
+```
+
+Calculate and report the mean and median of the total number of steps taken per day
+```{r summary, echo=TRUE}
+as.integer(mean(sumTable$Steps))
+as.integer(median(sumTable$Steps))
+```
