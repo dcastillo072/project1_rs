@@ -45,3 +45,31 @@ Calculate and report the mean and median of the total number of steps taken per 
 as.integer(mean(sumTable$Steps))
 as.integer(median(sumTable$Steps))
 ```
+
+## What is the average daily activity pattern?
+We need two:
+1- Make a time series plot
+2- Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r daily, fig.width=12, echo=TRUE}
+#import libraries
+library(plyr)
+library(ggplot2)
+
+#creating data
+datos_limpios <- datos[!is.na(datos$steps),]
+
+#creating average
+Table_inter <- ddply(datos_limpios, .(interval), summarize, Avg=mean(steps))
+
+#creating line plot
+p <- ggplot(Table_inter, aes(x=interval, y=Avg), xlab="Interval", ylab = "Average Numbwer of Steps")
+p + geom_line() + xlab("Interval") + ylab("Average Number of Steps") + ggtitle("Average number of Steps per Interval")
+
+
+##Maximum steps by interval
+maxSteps <- max(Table_inter$Avg)
+##Which interval contains the maximum average number of steps
+Table_inter[Table_inter$Avg==maxSteps,1]
+
+```
