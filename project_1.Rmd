@@ -73,3 +73,89 @@ maxSteps <- max(Table_inter$Avg)
 Table_inter[Table_inter$Avg==maxSteps,1]
 
 ```
+## Imputing missing values
+Note that there are a number of days/intervals where there are missing values (coded as \color{red}{\verb|NA|}NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with \color{red}{\verb|NA|}NAs)
+
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+#### 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```{r missing, echo=TRUE}
+#Number of NAs in original data set
+nrow(datos[is.na(datos$steps),])
+```
+
+The total number of rows with steps = 'NA' equal to 2304
+
+#### 2. Devise a strategy for filling in all of the missing values in the dataset
+
+```{r na_imputing, cache=TRUE, echo=TRUE}
+# First, creating average number
+Table_avg <- ddply(datos_limpios, .(interval, day), summarize, Avg=mean(steps))
+
+#Second, creating dataset with all NAs for substitution
+nadatos <- datos[is.na(datos$steps),]
+
+#merge datas
+nuevos_datos <- merge(nadatos, Table_avg, by =c("interval", "day"))
+
+```
+
+#### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+Below code is just to verify if process of imputing missing values correctly preserved original values (lines with no NAs)   
+```{r  echo=TRUE}
+#creating datas
+nuevos_datos2 <- nuevos_datos[,c(3,4,1,2)]
+colnames(nuevos_datos2) <- c("steps", "date", "interval", "day")
+
+#mergin datas
+mergeData <- rbind(datos_limpios, nuevos_datos2)
+
+```
+
+Making histogram.... hard work,, jeje
+```{r echo=TRUE}
+#sum of steps
+sumTable2 <- aggregate(mergeData$steps~ mergeData$date, FUN = sum,)
+colnames(sumTable2) <- c("Date", "Steps")
+
+#Mean
+as.integer(mean(sumTable2$Steps))
+
+#median
+as.integer(median(sumTable2$Steps))
+
+
+#histogram
+hist(sumTable2$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day with NAs Fixed", col="Black")
+hist(sumTable$Steps, breaks=5, xlab="Steps", main = "Total Steps per Day with NAs Fixed", col="Grey", add=T)
+legend("topright", c("Imputed Data", "Non-NA Data"), fill=c("black", "grey") )
+
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
+## Create new category based on the days of the week
+
+```{r echo=TRUE}
+
+library(lattice) 
+mergeData$DayCategory <- ifelse(mergeData$day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
+
+## Summarize data by interval and type of day
+intervalTable2 <- ddply(mergeData, .(interval, DayCategory), summarize, Avg = mean(steps))
+
+##Plot data in a panel plot
+xyplot(Avg~interval|DayCategory, data=intervalTable2, type="l",  layout = c(1,2),
+       main="Average Steps per Interval Based on Type of Day", 
+       ylab="Average Number of Steps", xlab="Interval")
+
+```
+
+
+
